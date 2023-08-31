@@ -1,0 +1,60 @@
+plugins {
+    id 'java-base'
+}
+
+wrapper {
+    gradleVersion = gradlewVersion
+}
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'jacoco'
+    group = 'com.mjc.school'
+
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+
+    dependencies {
+        implementation "org.springframework:spring-context:$springVersion"
+        implementation 'org.springframework.boot:spring-boot-starter-web:3.1.1'
+        implementation 'javax.servlet.jsp.jstl:jstl-api:1.2'
+
+        testImplementation "com.tngtech.archunit:archunit-junit5:$archUnitVersion"
+        testImplementation 'org.mockito:mockito-junit-jupiter:5.3.1'
+        testImplementation 'javax.servlet:javax.servlet-api:4.0.1'
+        testImplementation 'org.springframework.boot:spring-boot-starter-test:3.1.2'
+        testImplementation 'io.rest-assured:rest-assured:5.3.1'
+
+        annotationProcessor "org.mapstruct:mapstruct-processor:$mapstructVersion"
+        implementation "org.mapstruct:mapstruct:$mapstructVersion"
+
+        compileOnly 'org.projectlombok:lombok:1.18.22'
+        annotationProcessor 'org.projectlombok:lombok:1.18.22'
+        testCompileOnly 'org.projectlombok:lombok:1.18.22'
+        testAnnotationProcessor 'org.projectlombok:lombok:1.18.22'
+        testImplementation 'org.assertj:assertj-core:3.24.2'
+
+        implementation "org.springframework.boot:spring-boot-starter-data-jpa:$dataJpaVersion"
+    }
+    test {
+        useJUnitPlatform()
+    }
+}
+
+task repack(type: Jar, dependsOn: ':module-main:build') {
+    if (findProject(':module-main') != null) {
+        entryCompression = ZipEntryCompression.STORED
+        def buildJar = zipTree("${project(':module-main').buildDir}/libs/module-main.jar")
+        from(buildJar) { into('/') }
+        manifest {
+            attributes(
+                    'Main-Class': 'com.mjc.school.Main'
+            )
+        }
+    }
+}
