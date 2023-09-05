@@ -7,6 +7,9 @@ import com.mjc.school.controller.mapper.ServiceToWebDTOMapper;
 import com.mjc.school.service.BaseService;
 import com.mjc.school.service.dto.ServiceCommentRequestDto;
 import com.mjc.school.service.dto.ServiceCommentResponseDto;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -37,6 +40,10 @@ public class CommentController implements BaseController<CommentRequestDto, Comm
     }
 
     @Override
+    @ApiOperation("Read all comments")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "OK")
+    })
     @GetMapping
     public List<CommentResponseDto> readAll(@RequestParam(required = false) Integer pageNumber,
                                             @RequestParam(required = false, defaultValue = "3") Integer pageSize,
@@ -48,12 +55,20 @@ public class CommentController implements BaseController<CommentRequestDto, Comm
         return commentResponseDtoList;
     }
 
+    @ApiOperation("Read comment by id")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "OK")
+    })
     @GetMapping("/{id}")
     public CommentResponseDto readById(@PathVariable Long id) {
         return mapper.mapServiceCommentResponseDto(commentService.readById(id));
     }
 
     @PostMapping
+    @ApiOperation("Create comment")
+    @ApiResponses(value = {
+            @ApiResponse(code = 201, message = "Created")
+    })
     @ResponseStatus(HttpStatus.CREATED)
     public CommentResponseDto create(@RequestBody CommentRequestDto dtoRequest) {
         return mapper.mapServiceCommentResponseDto(
@@ -61,6 +76,11 @@ public class CommentController implements BaseController<CommentRequestDto, Comm
     }
 
     @PatchMapping("/{id}")
+    @ApiOperation("Update comment")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "OK"),
+            @ApiResponse(code = 404, message = "Not Found")
+    })
     public CommentResponseDto update(@PathVariable Long id,
                                      @RequestBody CommentRequestDto dtoRequest) {
         return mapper.mapServiceCommentResponseDto(
@@ -68,6 +88,11 @@ public class CommentController implements BaseController<CommentRequestDto, Comm
     }
 
     @DeleteMapping("/{id}")
+    @ApiOperation("Delete comment by id")
+    @ApiResponses(value = {
+            @ApiResponse(code = 204, message = "No Content"),
+            @ApiResponse(code = 404, message = "Not Found")
+    })
     @ResponseStatus(code = HttpStatus.NO_CONTENT)
     public void deleteById(@PathVariable Long id) {
         commentService.deleteById(id);

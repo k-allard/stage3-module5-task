@@ -15,6 +15,7 @@ import com.mjc.school.service.dto.ServiceCommentResponseDto;
 import com.mjc.school.service.dto.ServiceNewsRequestDto;
 import com.mjc.school.service.dto.ServiceNewsResponseDto;
 import com.mjc.school.service.dto.ServiceTagDto;
+import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
@@ -52,8 +53,9 @@ public class NewsController implements BaseController<NewsRequestDto, NewsRespon
 
 
     @Override
+    @ApiOperation("Read all news")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Ok")
+            @ApiResponse(code = 200, message = "OK")
     })
     @GetMapping
     public List<NewsResponseDto> readAll(
@@ -67,6 +69,10 @@ public class NewsController implements BaseController<NewsRequestDto, NewsRespon
         return newsResponseDtoList;
     }
 
+    @ApiOperation("Read news by id")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "OK")
+    })
     @GetMapping("/{id}")
     public NewsResponseDto readById(@PathVariable Long id) {
         return mapper.mapServiceNewsResponseDto(
@@ -74,6 +80,10 @@ public class NewsController implements BaseController<NewsRequestDto, NewsRespon
     }
 
     @PostMapping
+    @ApiOperation("Create news")
+    @ApiResponses(value = {
+            @ApiResponse(code = 201, message = "Created")
+    })
     @ResponseStatus(HttpStatus.CREATED)
     public NewsResponseDto create(@RequestBody NewsRequestDto dtoRequest) {
         return mapper.mapServiceNewsResponseDto(
@@ -81,6 +91,11 @@ public class NewsController implements BaseController<NewsRequestDto, NewsRespon
     }
 
     @PatchMapping("/{id}")
+    @ApiOperation("Update news")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "OK"),
+            @ApiResponse(code = 404, message = "Not Found")
+    })
     public NewsResponseDto update(@PathVariable Long id,
                                   @RequestBody NewsRequestDto dtoRequest) {
         return mapper.mapServiceNewsResponseDto(
@@ -88,11 +103,20 @@ public class NewsController implements BaseController<NewsRequestDto, NewsRespon
     }
 
     @DeleteMapping("/{id}")
+    @ApiOperation("Delete news by id")
+    @ApiResponses(value = {
+            @ApiResponse(code = 204, message = "No Content"),
+            @ApiResponse(code = 404, message = "Not Found")
+    })
     @ResponseStatus(code = HttpStatus.NO_CONTENT)
     public void deleteById(@PathVariable Long id) {
         newsService.deleteById(id);
     }
 
+    @ApiOperation("Read author by news id")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "OK")
+    })
     @GetMapping("/{id}/author")
     public AuthorResponseDto readAuthorByNewsId(@PathVariable Long id) {
         ServiceAuthorResponseDto responseDto = extendedService.readAuthorByNewsId(id);
@@ -102,6 +126,10 @@ public class NewsController implements BaseController<NewsRequestDto, NewsRespon
         return response;
     }
 
+    @ApiOperation("Read tags by news id")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "OK")
+    })
     @GetMapping("/{id}/tags")
     public List<TagDto> readTagsByNewsId(@PathVariable Long id) {
         List<ServiceTagDto> serviceTagDtos = extendedService.readTagsByNewsId(id);
@@ -112,6 +140,10 @@ public class NewsController implements BaseController<NewsRequestDto, NewsRespon
         return tagsList;
     }
 
+    @ApiOperation("Read comments by news id")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "OK")
+    })
     @Override
     @GetMapping("/{id}/comments")
     public List<CommentResponseDto> readCommentsByNewsId(@PathVariable Long id) {
@@ -123,6 +155,10 @@ public class NewsController implements BaseController<NewsRequestDto, NewsRespon
         return commentDtos;
     }
 
+    @ApiOperation("Read all news by params")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "OK")
+    })
     @GetMapping("/with-params")
     public List<NewsResponseDto> readNewsByParams(
             @RequestParam(required = false) List<Long> tagsIds,
