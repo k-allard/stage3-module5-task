@@ -15,6 +15,8 @@ import com.mjc.school.service.dto.ServiceCommentResponseDto;
 import com.mjc.school.service.dto.ServiceNewsRequestDto;
 import com.mjc.school.service.dto.ServiceNewsResponseDto;
 import com.mjc.school.service.dto.ServiceTagDto;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
@@ -50,6 +52,9 @@ public class NewsController implements BaseController<NewsRequestDto, NewsRespon
 
 
     @Override
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Ok")
+    })
     @GetMapping
     public List<NewsResponseDto> readAll(
             @RequestParam(required = false) Integer pageNumber,
