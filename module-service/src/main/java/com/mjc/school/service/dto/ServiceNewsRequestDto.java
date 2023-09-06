@@ -17,4 +17,11 @@ public class ServiceNewsRequestDto {
     private String content;
     private Long authorId;
     private List<Long> newsTagsIds;
+
+    public ServiceNewsRequestDto(String content) {
+        this(null, "Unknown", content, null, null);
+    }
+    public ServiceNewsRequestDto(Long id, String content) {
+        this(id, "Unknown", content, null, null);
+    }
 }
