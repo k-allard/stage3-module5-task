@@ -29,7 +29,6 @@ import static io.restassured.RestAssured.get;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-//TODO add all tests
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class NewsControllerTest {
@@ -37,23 +36,6 @@ public class NewsControllerTest {
     @Autowired
     BaseService<ServiceNewsRequestDto, ServiceNewsResponseDto, Long> newsService;
 
-    @LocalServerPort
-    private int port;
-
-//    @Test
-//    public void getAllAuthors() {
-//        RestAssured.given().port(port).contentType("application/json").get("/authors")
-//                .then()
-//                .body(notNullValue())
-//                .statusCode(200);
-//    }
-//
-//    @Test
-//    public void givenUrl_whenSuccessOnGetsResponseAndJsonHasRequiredKV_thenCorrect() {
-//        get("/").then().statusCode(200);
-//    }
-
-    private final String SECURITY_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyTmFtZSI6InRlc3RpbmcxMjMiLCJwYXNzd29yZCI6IlBhc3N3b3JkQDEiLCJpYXQiOjE2Mjg1NjQyMjF9.lW8JJvJF7jKebbqPiHOBGtCAus8D9Nv1BK6IoIIMJQ4";
     private final String BASE_URI = "http://localhost:8080";
     private final String REQUEST_MAPPING_URI = "/news";
     private final String EXPECTED_NEWS_CONTENT = "Financial News";
@@ -62,7 +44,6 @@ public class NewsControllerTest {
 
     @BeforeEach
     void setUp() {
-        //Create a piece of news for the testing purpose.
         ServiceNewsRequestDto news = new ServiceNewsRequestDto(EXPECTED_NEWS_CONTENT);
         ServiceNewsResponseDto createdNews = newsService.create(news);
         newsID = createdNews.getId();
@@ -71,7 +52,6 @@ public class NewsControllerTest {
     }
     @AfterEach
     void tearDown() {
-        //Delete a piece of news for executing a test.
         newsService.deleteById(newsID);
     }
 
@@ -84,7 +64,6 @@ public class NewsControllerTest {
 //
 //        // Get the RequestSpecification of the request to be sent to the server.
 //        RequestSpecification httpRequest = RestAssured.given()
-////                .header("Authorization", "Bearer " + SECURITY_TOKEN)
 //                .header("Content-Type", "application/json");
 //
 //        // Specify the method type (GET) and the parameters if any.
@@ -97,54 +76,48 @@ public class NewsControllerTest {
 //        assertEquals(EXPECTED_STATUS_CODE, response.getStatusCode());
 //        assertNotNull(responseBodyAsString);
 //    }
-//    @Test
-//    public void GetNewsByIdTest() throws JsonProcessingException {
-//        final int EXPECTED_STATUS_CODE = 200;
-//
-//        // Specify the base URL to the RESTful service
-//        RestAssured.baseURI = BASE_URI;
-//        // Get the RequestSpecification of the request to be sent to the server.
-//        RequestSpecification httpRequest = RestAssured.given()
-////                .header("Authorization", "Bearer " + SECURITY_TOKEN)
-//                .header("Content-Type", "application/json");
-//        // Specify the method type (GET) and the parameters if any.
-//        //In this case the request does not take any parameters
-//        Response response = httpRequest.get(REQUEST_MAPPING_URI + "/" + newsID);
-//        //Converting the response body to string
-//        String responseBodyAsString = response.asString();
-//        //Deserializing JSON response body to News object
-//        ServiceNewsResponseDto news = mapper.readValue(responseBodyAsString, ServiceNewsResponseDto.class);
-//        // Verify the status and body of the response received from the server
-//        assertEquals(EXPECTED_STATUS_CODE, response.getStatusCode());
-//        assertEquals(newsID, news.getId());
-//        assertEquals(EXPECTED_NEWS_CONTENT, news.getContent());
-//    }
     @Test
-    public void CreateNewsTest() throws JsonProcessingException {
-        final int EXPECTED_STATUS_CODE = 201;
-        final String EXPECTED_CONTENT_OF_NEWLY_CREATED_NEWS = "Political News";
-        // Specify the base URL to the RESTful service
+    public void getNewsByIdTest() throws JsonProcessingException {
+        final int EXPECTED_STATUS_CODE = 200;
+
         RestAssured.baseURI = BASE_URI;
-        // Get the RequestSpecification of the request to be sent to the server.
         RequestSpecification httpRequest = RestAssured.given()
-//                .header("Authorization", "Bearer " + SECURITY_TOKEN)
                 .header("Content-Type", "application/json");
-        //Create a piece of news object.
-        ServiceNewsRequestDto news = new ServiceNewsRequestDto(EXPECTED_CONTENT_OF_NEWLY_CREATED_NEWS);
-        //Serialize a piece of news object to json string.
-        String newsString = mapper.writeValueAsString(news);
-        // Send the put request to update a piece of news.
-        Response response = httpRequest.body(newsString).post(REQUEST_MAPPING_URI);
+
+        Response response = httpRequest.get(REQUEST_MAPPING_URI + "/" + newsID);
         //Converting the response body to string
         String responseBodyAsString = response.asString();
         //Deserializing JSON response body to News object
-        ServiceNewsResponseDto createdNews = mapper.readValue(responseBodyAsString, ServiceNewsResponseDto.class);
+        ServiceNewsResponseDto news = mapper.readValue(responseBodyAsString, ServiceNewsResponseDto.class);
         // Verify the status and body of the response received from the server
+        assertEquals(EXPECTED_STATUS_CODE, response.getStatusCode());
+        assertEquals(newsID, news.getId());
+        assertEquals(EXPECTED_NEWS_CONTENT, news.getContent());
+    }
+
+    @Test
+    public void createNewsTest() throws JsonProcessingException {
+        final int EXPECTED_STATUS_CODE = 201;
+        final String EXPECTED_CONTENT_OF_NEWLY_CREATED_NEWS = "Environmental News";
+        RestAssured.baseURI = BASE_URI;
+
+        RequestSpecification httpRequest = RestAssured.given()
+                .header("Content-Type", "application/json");
+
+        ServiceNewsRequestDto news = new ServiceNewsRequestDto(EXPECTED_CONTENT_OF_NEWLY_CREATED_NEWS);
+
+        String newsString = mapper.writeValueAsString(news);
+
+        Response response = httpRequest.body(newsString).post(REQUEST_MAPPING_URI);
+
+        String responseBodyAsString = response.asString();
+
+        ServiceNewsResponseDto createdNews = mapper.readValue(responseBodyAsString, ServiceNewsResponseDto.class);
+
         assertEquals(EXPECTED_STATUS_CODE, response.getStatusCode());
         assertNotNull(createdNews.getId());
         assertEquals(EXPECTED_CONTENT_OF_NEWLY_CREATED_NEWS, createdNews.getContent());
 
-        //Delete the created news for cleaning testing database after the test.
         newsService.deleteById(createdNews.getId());
     }
 //    @Test
@@ -155,7 +128,6 @@ public class NewsControllerTest {
 //        RestAssured.baseURI = BASE_URI;
 //        // Get the RequestSpecification of the request to be sent to the server.
 //        RequestSpecification httpRequest = RestAssured.given()
-////                .header("Authorization", "Bearer " + SECURITY_TOKEN)
 //                .header("Content-Type", "application/json");
 //        //Create a piece of news object with new content.
 //        ServiceNewsRequestDto newsWithNewContent = new ServiceNewsRequestDto(newsID, EXPECTED_NEWS_CONTENT_AFTER_UPDATE);
@@ -182,7 +154,6 @@ public class NewsControllerTest {
 //        RestAssured.baseURI = BASE_URI;
 //        // Get the RequestSpecification of the request to be sent to the server.
 //        RequestSpecification httpRequest = RestAssured.given()
-////                .header("Authorization", "Bearer " + SECURITY_TOKEN)
 //                ;
 //        // Send the request to delete resource.
 //        Response response = httpRequest.delete(REQUEST_MAPPING_URI + "/" + newsID);
