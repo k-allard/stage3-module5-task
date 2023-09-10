@@ -55,27 +55,23 @@ public class NewsControllerTest {
         newsService.deleteById(newsID);
     }
 
-//    @Test
-//    public void GetAllNewsTest() {
-//        final int EXPECTED_STATUS_CODE = 200;
-//
-//        // Specify the base URL to the RESTful service
-//        RestAssured.baseURI = BASE_URI + REQUEST_MAPPING_URI;
-//
-//        // Get the RequestSpecification of the request to be sent to the server.
-//        RequestSpecification httpRequest = RestAssured.given()
-//                .header("Content-Type", "application/json");
-//
-//        // Specify the method type (GET) and the parameters if any.
-//        //In this case the request does not take any parameters
-//        Response response = httpRequest.request(Method.GET, "");
-//        //Converting the response body to string
-//        String responseBodyAsString = response.asString();
-//
-//        // Verify the status and body of the response received from the server
-//        assertEquals(EXPECTED_STATUS_CODE, response.getStatusCode());
-//        assertNotNull(responseBodyAsString);
-//    }
+    @Test
+    public void getAllNewsTest() {
+        final int EXPECTED_STATUS_CODE = 200;
+
+        RestAssured.baseURI = BASE_URI + REQUEST_MAPPING_URI;
+
+        RequestSpecification httpRequest = RestAssured.given()
+                .header("Content-Type", "application/json");
+
+        Response response = httpRequest.request(Method.GET, "");
+
+        String responseBodyAsString = response.asString();
+
+        assertEquals(EXPECTED_STATUS_CODE, response.getStatusCode());
+        assertNotNull(responseBodyAsString);
+    }
+
     @Test
     public void getNewsByIdTest() throws JsonProcessingException {
         final int EXPECTED_STATUS_CODE = 200;
@@ -85,11 +81,11 @@ public class NewsControllerTest {
                 .header("Content-Type", "application/json");
 
         Response response = httpRequest.get(REQUEST_MAPPING_URI + "/" + newsID);
-        //Converting the response body to string
+
         String responseBodyAsString = response.asString();
-        //Deserializing JSON response body to News object
+
         ServiceNewsResponseDto news = mapper.readValue(responseBodyAsString, ServiceNewsResponseDto.class);
-        // Verify the status and body of the response received from the server
+
         assertEquals(EXPECTED_STATUS_CODE, response.getStatusCode());
         assertEquals(newsID, news.getId());
         assertEquals(EXPECTED_NEWS_CONTENT, news.getContent());
@@ -120,44 +116,41 @@ public class NewsControllerTest {
 
         newsService.deleteById(createdNews.getId());
     }
-//    @Test
-//    public void UpdateNewsTest() throws JsonProcessingException {
-//        final int EXPECTED_STATUS_CODE = 200;
-//        final String EXPECTED_NEWS_CONTENT_AFTER_UPDATE = "Updated Financial News";
-//        // Specify the base URL to the RESTful service
-//        RestAssured.baseURI = BASE_URI;
-//        // Get the RequestSpecification of the request to be sent to the server.
-//        RequestSpecification httpRequest = RestAssured.given()
-//                .header("Content-Type", "application/json");
-//        //Create a piece of news object with new content.
-//        ServiceNewsRequestDto newsWithNewContent = new ServiceNewsRequestDto(newsID, EXPECTED_NEWS_CONTENT_AFTER_UPDATE);
-//
-//        //Serialize a piece of news object with new content to json string.
-//        String newsWithNewContentAsJson = mapper.writeValueAsString(newsWithNewContent);
-//
-//        // Send the put request to update a piece of news.
-//        Response response = httpRequest.body(newsWithNewContentAsJson).put(REQUEST_MAPPING_URI + "/" + newsID);
-//        //Converting the response body to string
-//        String responseBodyAsString = response.asString();
-//        //Deserializing JSON response body to News object
-//        ServiceNewsResponseDto updatedNews = mapper.readValue(responseBodyAsString, ServiceNewsResponseDto.class);
-//        // Verify the status and body of the response received from the server
-//        assertEquals(EXPECTED_STATUS_CODE, response.getStatusCode());
-//        assertEquals(newsID, updatedNews.getId());
-//        assertEquals(EXPECTED_NEWS_CONTENT_AFTER_UPDATE, updatedNews.getContent());
-//    }
-//    @Test
-//    public void DeleteNewsTest() {
-//        final int EXPECTED_STATUS_CODE = 204;
-//
-//        // Specify the base URL to the RESTful service
-//        RestAssured.baseURI = BASE_URI;
-//        // Get the RequestSpecification of the request to be sent to the server.
-//        RequestSpecification httpRequest = RestAssured.given()
-//                ;
-//        // Send the request to delete resource.
-//        Response response = httpRequest.delete(REQUEST_MAPPING_URI + "/" + newsID);
-//        // Verify the status and body of the response received from the server
-//        assertEquals(EXPECTED_STATUS_CODE, response.getStatusCode());
-//    }
+
+    @Test
+    public void updateNewsTest() throws JsonProcessingException {
+        final int EXPECTED_STATUS_CODE = 200;
+        final String EXPECTED_NEWS_CONTENT_AFTER_UPDATE = "Updated Financial News";
+
+        RestAssured.baseURI = BASE_URI;
+
+        RequestSpecification httpRequest = RestAssured.given()
+                .header("Content-Type", "application/json");
+
+        ServiceNewsRequestDto newsWithNewContent = new ServiceNewsRequestDto(
+                newsID, EXPECTED_NEWS_CONTENT_AFTER_UPDATE);
+
+        String newsWithNewContentAsJson = mapper.writeValueAsString(newsWithNewContent);
+        Response response = httpRequest.body(newsWithNewContentAsJson).patch(REQUEST_MAPPING_URI + "/" + newsID);
+        String responseBodyAsString = response.asString();
+        ServiceNewsResponseDto updatedNews = mapper.readValue(responseBodyAsString, ServiceNewsResponseDto.class);
+
+        assertEquals(EXPECTED_STATUS_CODE, response.getStatusCode());
+        assertEquals(newsID, updatedNews.getId());
+        assertEquals(EXPECTED_NEWS_CONTENT_AFTER_UPDATE, updatedNews.getContent());
+    }
+
+    @Test
+    public void deleteNewsTest() {
+        final int EXPECTED_STATUS_CODE = 204;
+
+        RestAssured.baseURI = BASE_URI;
+        RequestSpecification httpRequest = RestAssured.given()
+                ; //TODO check
+
+        ServiceNewsResponseDto createdNews = newsService.create(new ServiceNewsRequestDto(EXPECTED_NEWS_CONTENT));
+        Response response = httpRequest.delete(REQUEST_MAPPING_URI + "/" + createdNews.getId());
+
+        assertEquals(EXPECTED_STATUS_CODE, response.getStatusCode());
+    }
 }
