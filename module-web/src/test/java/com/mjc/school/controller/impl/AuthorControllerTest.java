@@ -4,10 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.mjc.school.service.BaseService;
-import com.mjc.school.service.dto.ServiceNewsRequestDto;
-import com.mjc.school.service.dto.ServiceNewsResponseDto;
+import com.mjc.school.service.dto.ServiceAuthorRequestDto;
+import com.mjc.school.service.dto.ServiceAuthorResponseDto;
 import io.restassured.RestAssured;
-
 import io.restassured.http.Method;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
@@ -24,33 +23,33 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-public class NewsControllerTest {
+public class AuthorControllerTest {
 
     @Autowired
-    BaseService<ServiceNewsRequestDto, ServiceNewsResponseDto, Long> newsService;
+    BaseService<ServiceAuthorRequestDto, ServiceAuthorResponseDto, Long> authorService;
 
     private final String BASE_URI = "http://localhost:8080";
-    private final String REQUEST_MAPPING_URI = "/news";
-    private final String EXPECTED_NEWS_CONTENT = "Financial News";
+    private final String REQUEST_MAPPING_URI = "/authors";
+    private final String EXPECTED_AUTHOR_NAME = "Brigitte Hunt";
     private final ObjectMapper mapper = new ObjectMapper();
-    private Long newsID;
+    private Long authorId;
 
     @BeforeEach
     void setUp() {
-        ServiceNewsRequestDto news = new ServiceNewsRequestDto(EXPECTED_NEWS_CONTENT);
-        ServiceNewsResponseDto createdNews = newsService.create(news);
-        newsID = createdNews.getId();
+        ServiceAuthorRequestDto author = new ServiceAuthorRequestDto(null, EXPECTED_AUTHOR_NAME);
+        ServiceAuthorResponseDto createdAuthor = authorService.create(author);
+        authorId = createdAuthor.getId();
 
         mapper.registerModule(new JavaTimeModule());
     }
 
     @AfterEach
     void tearDown() {
-        newsService.deleteById(newsID);
+        authorService.deleteById(authorId);
     }
 
     @Test
-    public void getAllNewsTest() {
+    public void getAllAuthorsTest() {
         final int EXPECTED_STATUS_CODE = 200;
 
         RestAssured.baseURI = BASE_URI + REQUEST_MAPPING_URI;
@@ -67,82 +66,82 @@ public class NewsControllerTest {
     }
 
     @Test
-    public void getNewsByIdTest() throws JsonProcessingException {
+    public void getAuthorByIdTest() throws JsonProcessingException {
         final int EXPECTED_STATUS_CODE = 200;
 
         RestAssured.baseURI = BASE_URI;
         RequestSpecification httpRequest = RestAssured.given()
                 .header("Content-Type", "application/json");
 
-        Response response = httpRequest.get(REQUEST_MAPPING_URI + "/" + newsID);
+        Response response = httpRequest.get(REQUEST_MAPPING_URI + "/" + authorId);
 
         String responseBodyAsString = response.asString();
 
-        ServiceNewsResponseDto news = mapper.readValue(responseBodyAsString, ServiceNewsResponseDto.class);
+        ServiceAuthorResponseDto author = mapper.readValue(responseBodyAsString, ServiceAuthorResponseDto.class);
 
         assertEquals(EXPECTED_STATUS_CODE, response.getStatusCode());
-        assertEquals(newsID, news.getId());
-        assertEquals(EXPECTED_NEWS_CONTENT, news.getContent());
+        assertEquals(authorId, author.getId());
+        assertEquals(EXPECTED_AUTHOR_NAME, author.getName());
     }
 
     @Test
-    public void createNewsTest() throws JsonProcessingException {
+    public void createAuthorTest() throws JsonProcessingException {
         final int EXPECTED_STATUS_CODE = 201;
-        final String EXPECTED_CONTENT_OF_NEWLY_CREATED_NEWS = "Environmental News";
+        final String EXPECTED_NAME_OF_NEWLY_CREATED_AUTHOR = "Noel Holmes";
         RestAssured.baseURI = BASE_URI;
 
         RequestSpecification httpRequest = RestAssured.given()
                 .header("Content-Type", "application/json");
 
-        ServiceNewsRequestDto news = new ServiceNewsRequestDto(EXPECTED_CONTENT_OF_NEWLY_CREATED_NEWS);
+        ServiceAuthorRequestDto author = new ServiceAuthorRequestDto(null, EXPECTED_NAME_OF_NEWLY_CREATED_AUTHOR);
 
-        String newsString = mapper.writeValueAsString(news);
+        String authorString = mapper.writeValueAsString(author);
 
-        Response response = httpRequest.body(newsString).post(REQUEST_MAPPING_URI);
+        Response response = httpRequest.body(authorString).post(REQUEST_MAPPING_URI);
 
         String responseBodyAsString = response.asString();
 
-        ServiceNewsResponseDto createdNews = mapper.readValue(responseBodyAsString, ServiceNewsResponseDto.class);
+        ServiceAuthorResponseDto createdAuthor = mapper.readValue(responseBodyAsString, ServiceAuthorResponseDto.class);
 
         assertEquals(EXPECTED_STATUS_CODE, response.getStatusCode());
-        assertNotNull(createdNews.getId());
-        assertEquals(EXPECTED_CONTENT_OF_NEWLY_CREATED_NEWS, createdNews.getContent());
+        assertNotNull(createdAuthor.getId());
+        assertEquals(EXPECTED_NAME_OF_NEWLY_CREATED_AUTHOR, createdAuthor.getName());
 
-        newsService.deleteById(createdNews.getId());
+        authorService.deleteById(createdAuthor.getId());
     }
 
     @Test
-    public void updateNewsTest() throws JsonProcessingException {
+    public void updateAuthorTest() throws JsonProcessingException {
         final int EXPECTED_STATUS_CODE = 200;
-        final String EXPECTED_NEWS_CONTENT_AFTER_UPDATE = "Updated Financial News";
+        final String EXPECTED_AUTHOR_NAME_AFTER_UPDATE = "Updated Author";
 
         RestAssured.baseURI = BASE_URI;
 
         RequestSpecification httpRequest = RestAssured.given()
                 .header("Content-Type", "application/json");
 
-        ServiceNewsRequestDto newsWithNewContent = new ServiceNewsRequestDto(
-                newsID, EXPECTED_NEWS_CONTENT_AFTER_UPDATE);
+        ServiceAuthorRequestDto authorWithNewContent = new ServiceAuthorRequestDto(
+                authorId, EXPECTED_AUTHOR_NAME_AFTER_UPDATE);
 
-        String newsWithNewContentAsJson = mapper.writeValueAsString(newsWithNewContent);
-        Response response = httpRequest.body(newsWithNewContentAsJson).patch(REQUEST_MAPPING_URI + "/" + newsID);
+        String authorWithNewContentAsJson = mapper.writeValueAsString(authorWithNewContent);
+        Response response = httpRequest.body(authorWithNewContentAsJson).patch(REQUEST_MAPPING_URI + "/" + authorId);
         String responseBodyAsString = response.asString();
-        ServiceNewsResponseDto updatedNews = mapper.readValue(responseBodyAsString, ServiceNewsResponseDto.class);
+        ServiceAuthorResponseDto updatedAuthor = mapper.readValue(responseBodyAsString, ServiceAuthorResponseDto.class);
 
         assertEquals(EXPECTED_STATUS_CODE, response.getStatusCode());
-        assertEquals(newsID, updatedNews.getId());
-        assertEquals(EXPECTED_NEWS_CONTENT_AFTER_UPDATE, updatedNews.getContent());
+        assertEquals(authorId, updatedAuthor.getId());
+        assertEquals(EXPECTED_AUTHOR_NAME_AFTER_UPDATE, updatedAuthor.getName());
     }
 
     @Test
-    public void deleteNewsTest() {
+    public void deleteAuthorTest() {
         final int EXPECTED_STATUS_CODE = 204;
 
         RestAssured.baseURI = BASE_URI;
         RequestSpecification httpRequest = RestAssured.given(); //TODO check
 
-        ServiceNewsResponseDto createdNews = newsService.create(new ServiceNewsRequestDto(EXPECTED_NEWS_CONTENT));
-        Response response = httpRequest.delete(REQUEST_MAPPING_URI + "/" + createdNews.getId());
+        ServiceAuthorResponseDto createdAuthor = authorService.create(new ServiceAuthorRequestDto(null, EXPECTED_AUTHOR_NAME));
+        Response response = httpRequest.delete(REQUEST_MAPPING_URI + "/" + createdAuthor.getId());
 
         assertEquals(EXPECTED_STATUS_CODE, response.getStatusCode());
     }
