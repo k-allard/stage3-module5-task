@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import static io.restassured.RestAssured.delete;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -124,7 +125,8 @@ public class AuthorControllerTest {
                 authorId, EXPECTED_AUTHOR_NAME_AFTER_UPDATE);
 
         String authorWithNewContentAsJson = mapper.writeValueAsString(authorWithNewContent);
-        Response response = httpRequest.body(authorWithNewContentAsJson).patch(REQUEST_MAPPING_URI + "/" + authorId);
+        Response response = httpRequest.body(authorWithNewContentAsJson)
+                .patch(REQUEST_MAPPING_URI + "/" + authorId);
         String responseBodyAsString = response.asString();
         ServiceAuthorResponseDto updatedAuthor = mapper.readValue(responseBodyAsString, ServiceAuthorResponseDto.class);
 
@@ -138,10 +140,9 @@ public class AuthorControllerTest {
         final int EXPECTED_STATUS_CODE = 204;
 
         RestAssured.baseURI = BASE_URI;
-        RequestSpecification httpRequest = RestAssured.given(); //TODO check
 
         ServiceAuthorResponseDto createdAuthor = authorService.create(new ServiceAuthorRequestDto(null, EXPECTED_AUTHOR_NAME));
-        Response response = httpRequest.delete(REQUEST_MAPPING_URI + "/" + createdAuthor.getId());
+        Response response = delete(REQUEST_MAPPING_URI + "/" + createdAuthor.getId());
 
         assertEquals(EXPECTED_STATUS_CODE, response.getStatusCode());
     }

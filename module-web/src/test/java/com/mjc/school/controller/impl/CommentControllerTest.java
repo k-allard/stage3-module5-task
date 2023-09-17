@@ -4,10 +4,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.mjc.school.service.BaseService;
+import com.mjc.school.service.dto.ServiceCommentRequestDto;
+import com.mjc.school.service.dto.ServiceCommentResponseDto;
 import com.mjc.school.service.dto.ServiceNewsRequestDto;
 import com.mjc.school.service.dto.ServiceNewsResponseDto;
 import io.restassured.RestAssured;
-
 import io.restassured.http.Method;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
@@ -25,29 +26,39 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-public class NewsControllerTest {
+public class CommentControllerTest {
 
     @Autowired
     BaseService<ServiceNewsRequestDto, ServiceNewsResponseDto, Long> newsService;
 
+    @Autowired
+    BaseService<ServiceCommentRequestDto, ServiceCommentResponseDto, Long> commentService;
+
     private final String BASE_URI = "http://localhost:8080";
-    private final String REQUEST_MAPPING_URI = "/news";
-    private final String EXPECTED_NEWS_CONTENT = "Financial News";
+    private final String REQUEST_MAPPING_URI = "/comments";
+    private final String EXPECTED_COMMENT_CONTENT = "Great News!";
     private final ObjectMapper mapper = new ObjectMapper();
-    private Long newsID;
+    private Long commentId;
+    private Long newsId;
 
     @BeforeEach
     void setUp() {
-        ServiceNewsRequestDto news = new ServiceNewsRequestDto(EXPECTED_NEWS_CONTENT);
-        ServiceNewsResponseDto createdNews = newsService.create(news);
-        newsID = createdNews.getId();
+        String EXPECTED_NEWS_CONTENT = "Financial News";
+        ServiceNewsResponseDto newsResponseDto = newsService.create(
+                new ServiceNewsRequestDto(null, EXPECTED_NEWS_CONTENT));
+        newsId = newsResponseDto.getId();
+        ServiceCommentRequestDto commentRequestDto = new ServiceCommentRequestDto(
+                null, EXPECTED_COMMENT_CONTENT, newsId);
+        ServiceCommentResponseDto createdComment = commentService.create(commentRequestDto);
+        commentId = createdComment.getId();
 
         mapper.registerModule(new JavaTimeModule());
     }
 
     @AfterEach
     void tearDown() {
-        newsService.deleteById(newsID);
+        commentService.deleteById(commentId);
+        newsService.deleteById(newsId);
     }
 
     @Test
@@ -75,64 +86,65 @@ public class NewsControllerTest {
         RequestSpecification httpRequest = RestAssured.given()
                 .header("Content-Type", "application/json");
 
-        Response response = httpRequest.get(REQUEST_MAPPING_URI + "/" + newsID);
+        Response response = httpRequest.get(REQUEST_MAPPING_URI + "/" + commentId);
 
         String responseBodyAsString = response.asString();
 
-        ServiceNewsResponseDto news = mapper.readValue(responseBodyAsString, ServiceNewsResponseDto.class);
+        ServiceCommentResponseDto news = mapper.readValue(responseBodyAsString, ServiceCommentResponseDto.class);
 
         assertEquals(EXPECTED_STATUS_CODE, response.getStatusCode());
-        assertEquals(newsID, news.getId());
-        assertEquals(EXPECTED_NEWS_CONTENT, news.getContent());
+        assertEquals(commentId, news.getId());
+        assertEquals(EXPECTED_COMMENT_CONTENT, news.getContent());
     }
 
     @Test
     public void createNewsTest() throws JsonProcessingException {
         final int EXPECTED_STATUS_CODE = 201;
-        final String EXPECTED_CONTENT_OF_NEWLY_CREATED_NEWS = "Environmental News";
         RestAssured.baseURI = BASE_URI;
 
         RequestSpecification httpRequest = RestAssured.given()
                 .header("Content-Type", "application/json");
 
-        ServiceNewsRequestDto news = new ServiceNewsRequestDto(EXPECTED_CONTENT_OF_NEWLY_CREATED_NEWS);
+        ServiceCommentRequestDto comment = new ServiceCommentRequestDto(null, EXPECTED_COMMENT_CONTENT, newsId);
 
-        String newsString = mapper.writeValueAsString(news);
+        String commentString = mapper.writeValueAsString(comment);
 
-        Response response = httpRequest.body(newsString).post(REQUEST_MAPPING_URI);
+        Response response = httpRequest.body(commentString).post(REQUEST_MAPPING_URI);
 
-        String responseBodyAsString = response.asString();
-
-        ServiceNewsResponseDto createdNews = mapper.readValue(responseBodyAsString, ServiceNewsResponseDto.class);
+        ServiceCommentResponseDto commentResponseDto = mapper.readValue(
+                response.asString(), ServiceCommentResponseDto.class);
 
         assertEquals(EXPECTED_STATUS_CODE, response.getStatusCode());
-        assertNotNull(createdNews.getId());
-        assertEquals(EXPECTED_CONTENT_OF_NEWLY_CREATED_NEWS, createdNews.getContent());
+        assertNotNull(commentResponseDto.getId());
+        assertEquals(EXPECTED_COMMENT_CONTENT, commentResponseDto.getContent());
+        assertEquals(newsId, commentResponseDto.getNewsId());
 
-        newsService.deleteById(createdNews.getId());
+        commentService.deleteById(commentResponseDto.getId());
     }
 
     @Test
     public void updateNewsTest() throws JsonProcessingException {
         final int EXPECTED_STATUS_CODE = 200;
-        final String EXPECTED_NEWS_CONTENT_AFTER_UPDATE = "Updated Financial News";
+        final String EXPECTED_COMMENT_CONTENT_AFTER_UPDATE = "Updated Financial News";
 
         RestAssured.baseURI = BASE_URI;
 
         RequestSpecification httpRequest = RestAssured.given()
                 .header("Content-Type", "application/json");
 
-        ServiceNewsRequestDto newsWithNewContent = new ServiceNewsRequestDto(
-                newsID, EXPECTED_NEWS_CONTENT_AFTER_UPDATE);
+        ServiceCommentRequestDto commentWithNewContent = new ServiceCommentRequestDto(
+                commentId, EXPECTED_COMMENT_CONTENT_AFTER_UPDATE, newsId);
 
-        String newsWithNewContentAsJson = mapper.writeValueAsString(newsWithNewContent);
-        Response response = httpRequest.body(newsWithNewContentAsJson).patch(REQUEST_MAPPING_URI + "/" + newsID);
+        String newsWithNewContentAsJson = mapper.writeValueAsString(commentWithNewContent);
+        Response response = httpRequest.body(newsWithNewContentAsJson)
+                .patch(REQUEST_MAPPING_URI + "/" + commentId);
         String responseBodyAsString = response.asString();
-        ServiceNewsResponseDto updatedNews = mapper.readValue(responseBodyAsString, ServiceNewsResponseDto.class);
+        ServiceCommentResponseDto updatedComment = mapper.readValue(
+                responseBodyAsString, ServiceCommentResponseDto.class);
 
         assertEquals(EXPECTED_STATUS_CODE, response.getStatusCode());
-        assertEquals(newsID, updatedNews.getId());
-        assertEquals(EXPECTED_NEWS_CONTENT_AFTER_UPDATE, updatedNews.getContent());
+        assertEquals(commentId, updatedComment.getId());
+        assertEquals(EXPECTED_COMMENT_CONTENT_AFTER_UPDATE, updatedComment.getContent());
     }
 
     @Test
@@ -141,8 +153,9 @@ public class NewsControllerTest {
 
         RestAssured.baseURI = BASE_URI;
 
-        ServiceNewsResponseDto createdNews = newsService.create(new ServiceNewsRequestDto(EXPECTED_NEWS_CONTENT));
-        Response response = delete(REQUEST_MAPPING_URI + "/" + createdNews.getId());
+        ServiceCommentResponseDto commentResponseDto = commentService.create(
+                new ServiceCommentRequestDto(null, EXPECTED_COMMENT_CONTENT, newsId));
+        Response response = delete(REQUEST_MAPPING_URI + "/" + commentResponseDto.getId());
 
         assertEquals(EXPECTED_STATUS_CODE, response.getStatusCode());
     }
