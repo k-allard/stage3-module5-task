@@ -61,7 +61,7 @@ public class TagControllerTest {
     @AfterEach
     void tearDown() {
 //        commentService.deleteById(commentId);
-//        newsService.deleteById(newsId);
+        newsService.deleteById(newsId);
         tagService.deleteById(tagId);
     }
 
